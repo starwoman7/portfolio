@@ -301,13 +301,13 @@
                         <!-- First Name & Last Name -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-[10px] uppercase tracking-widest text-creamMuted mb-2">first name</label>
-                                <input type="text" id="first-name" placeholder="first name"
+                                <label class="block text-[10px] uppercase tracking-widest text-creamMuted mb-2">first name *</label>
+                                <input type="text" id="first-name" name="first-name" required placeholder="first name"
                                        class="w-full bg-charcoalCard border border-charcoalBorder text-cream text-xs px-4 py-3 focus:outline-none focus:border-crimson transition-colors font-sans">
                             </div>
                             <div>
                                 <label class="block text-[10px] uppercase tracking-widest text-creamMuted mb-2">last name</label>
-                                <input type="text" id="last-name" placeholder="last name"
+                                <input type="text" id="last-name" name="last-name" placeholder="last name"
                                        class="w-full bg-charcoalCard border border-charcoalBorder text-cream text-xs px-4 py-3 focus:outline-none focus:border-crimson transition-colors font-sans">
                             </div>
                         </div>
@@ -315,21 +315,21 @@
                         <!-- Email Address (Required) -->
                         <div>
                             <label class="block text-[10px] uppercase tracking-widest text-creamMuted mb-2">email address *</label>
-                            <input type="email" id="email" required placeholder="your.email@domain.com"
+                            <input type="email" id="email" name="email" required placeholder="your.email@domain.com"
                                    class="w-full bg-charcoalCard border border-charcoalBorder text-cream text-xs px-4 py-3 focus:outline-none focus:border-crimson transition-colors font-sans">
                         </div>
 
                         <!-- Location -->
                         <div>
-                            <label class="block text-[10px] uppercase tracking-widest text-creamMuted mb-2">location</label>
-                            <input type="text" id="location" placeholder="city, country"
+                            <label class="block text-[10px] uppercase tracking-widest text-creamMuted mb-2">location *</label>
+                            <input type="text" id="location" name="location" required placeholder="city, country"
                                    class="w-full bg-charcoalCard border border-charcoalBorder text-cream text-xs px-4 py-3 focus:outline-none focus:border-crimson transition-colors font-sans">
                         </div>
 
                         <!-- Project Details -->
                         <div>
-                            <label class="block text-[10px] uppercase tracking-widest text-creamMuted mb-2">project details</label>
-                            <textarea id="project-details" rows="5" placeholder="tell me about your idea, timeline, or concept..."
+                            <label class="block text-[10px] uppercase tracking-widest text-creamMuted mb-2">project details *</label>
+                            <textarea id="project-details" name="project-details" rows="5" required placeholder="tell me about your idea, timeline, or concept..."
                                       class="w-full bg-charcoalCard border border-charcoalBorder text-cream text-xs px-4 py-3 focus:outline-none focus:border-crimson transition-colors font-sans resize-none"></textarea>
                         </div>
 
@@ -390,7 +390,7 @@
             <div class="space-y-2">
                 <h3 class="font-garamond text-3xl font-normal text-cream italic">message sent</h3>
                 <p class="text-xs text-creamMuted leading-relaxed">
-                    thank you <span id="conf-client-name" class="text-cream font-medium"></span>. your details have been prepared for <span class="text-crimson font-mono">starwoman7130@gmail.com</span>.
+                    thank you <span id="conf-client-name" class="text-cream font-medium"></span>. your message has been sent successfully.
                 </p>
             </div>
 
@@ -491,31 +491,36 @@
             }
         });
 
-        // --- 3. FORM SUBMISSION LOGIC ---
+        // --- 3. FORM SUBMISSION LOGIC (FORMSPREE) ---
         const contactForm = document.getElementById('contact-form');
         const confModal = document.getElementById('confirmation-modal');
         const confClientName = document.getElementById('conf-client-name');
 
-        contactForm.onsubmit = (e) => {
+        contactForm.onsubmit = async (e) => {
             e.preventDefault();
 
-            const firstName = document.getElementById('first-name').value || 'Friend';
-            const email = document.getElementById('email').value;
-            const projectDetails = document.getElementById('project-details').value;
-            const location = document.getElementById('location').value;
+            const firstNameInput = document.getElementById('first-name').value || 'Friend';
+            const formData = new FormData(contactForm);
 
-            confClientName.textContent = firstName;
-            confModal.classList.remove('hidden');
+            try {
+                const response = await fetch(contactForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
 
-            // Trigger mailto link in background
-            const mailtoSubject = encodeURIComponent(`Inquiry from ${firstName}`);
-            const mailtoBody = encodeURIComponent(`Name: ${firstName}\nEmail: ${email}\nLocation: ${location}\n\nProject Details:\n${projectDetails}`);
-            
-            setTimeout(() => {
-                window.location.href = `mailto:starwoman7130@gmail.com?subject=${mailtoSubject}&body=${mailtoBody}`;
-            }, 1000);
-
-            contactForm.reset();
+                if (response.ok) {
+                    confClientName.textContent = firstNameInput;
+                    confModal.classList.remove('hidden');
+                    contactForm.reset();
+                } else {
+                    alert('Oops! There was a problem submitting your form. Please try again.');
+                }
+            } catch (error) {
+                alert('Network error. Please check your connection and try again.');
+            }
         };
 
         document.getElementById('conf-close-btn').onclick = () => {
